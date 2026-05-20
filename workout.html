@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<title>Training Program</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f0;
+    --muted: #888;
+    --faint: #444;
+    --accent: #c8f542;
+    --accent-dim: rgba(200,245,66,0.12);
+    --accent-dim2: rgba(200,245,66,0.06);
+    --blue: #42a5f5;
+    --blue-dim: rgba(66,165,245,0.12);
+    --orange: #ff8c42;
+    --orange-dim: rgba(255,140,66,0.12);
+    --red: #ff5252;
+    --red-dim: rgba(255,82,82,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 100px;
+  }
+
+  /* Header */
+  .header {
+    padding: 52px 20px 20px;
+    position: relative;
+  }
+  .header-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px 20px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Day nav */
+  .day-nav {
+    display: flex;
+    gap: 6px;
+    padding: 0 20px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .day-nav::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 54px;
+  }
+  .day-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .day-btn.today {
+    border-color: var(--border2);
+  }
+  .day-btn-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .day-btn.active .day-btn-name { color: #0a0a0a; }
+  .day-btn-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--faint);
+  }
+  .day-btn.upper .day-btn-dot { background: var(--accent); }
+  .day-btn.lower .day-btn-dot { background: var(--blue); }
+  .day-btn.active .day-btn-dot { background: #0a0a0a; }
+  .day-btn.rest-day .day-btn-dot { background: var(--orange); }
+
+  /* Day view */
+  .day-view { padding: 0 20px; display: none; }
+  .day-view.active { display: block; }
+
+  /* Day hero */
+  .day-hero {
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .day-hero.upper { background: var(--accent-dim2); border: 1px solid rgba(200,245,66,0.2); }
+  .day-hero.lower { background: var(--blue-dim); border: 1px solid rgba(66,165,245,0.2); }
+  .day-hero.rest { background: var(--orange-dim); border: 1px solid rgba(255,140,66,0.2); }
+  .day-hero-badge {
+    display: inline-block;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+  }
+  .upper .day-hero-badge { background: var(--accent-dim); color: var(--accent); }
+  .lower .day-hero-badge { background: var(--blue-dim); color: var(--blue); }
+  .rest .day-hero-badge { background: var(--orange-dim); color: var(--orange); }
+  .day-hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .day-hero-focus {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .day-hero-focus span {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Aesthetic tip */
+  .aesthetic-tip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .aesthetic-tip strong { color: var(--accent); font-weight: 500; }
+
+  /* Section label */
+  .section-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 10px;
+  }
+
+  /* Exercise cards */
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .exercise-card:active { background: var(--surface2); }
+  .exercise-card.done { opacity: 0.4; }
+  .exercise-card.done .ex-check { background: var(--accent); border-color: var(--accent); }
+  .exercise-card.done .ex-check::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 5px;
+    border-left: 2px solid #0a0a0a;
+    border-bottom: 2px solid #0a0a0a;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .ex-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--faint);
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .ex-body { flex: 1; min-width: 0; }
+  .ex-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .ex-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .ex-chips {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+  .chip-sets { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .chip-hyp { background: var(--blue-dim); color: var(--blue); }
+  .chip-str { background: rgba(255,200,66,0.12); color: #ffc842; }
+  .chip-pump { background: var(--accent-dim); color: var(--accent); }
+
+  /* Activity card (rest day) */
+  .activity-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+  .activity-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .activity-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--orange-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .activity-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .activity-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .activity-details {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .activity-details b { color: var(--text); font-weight: 500; }
+
+  /* Nutrition block */
+  .nutrition-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 20px;
+    margin-bottom: 16px;
+  }
+  .nutrition-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .nutrition-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .nutrition-row:last-child { border-bottom: none; }
+  .nutrition-key { font-size: 13px; color: var(--muted); }
+  .nutrition-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
+
+  /* Progress reset */
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .reset-btn:active { background: var(--surface); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 0 24px;
+    z-index: 100;
+  }
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--faint);
+    padding: 4px 16px;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-label { font-size: 10px; font-family: 'Syne', sans-serif; font-weight: 600; letter-spacing: 0.05em; }
+
+  /* Pages */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Overview page */
+  .overview-page { padding: 52px 20px 20px; }
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .week-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 14px;
+    cursor: pointer;
+  }
+  .week-row:last-child { border-bottom: none; }
+  .week-row-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .week-row-day { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--muted); width: 28px; flex-shrink: 0; }
+  .week-row-name { font-size: 14px; color: var(--text); font-weight: 500; flex: 1; }
+  .week-row-type { font-size: 11px; color: var(--muted); }
+
+  /* Info page */
+  .info-page { padding: 52px 20px 20px; }
+  .info-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .info-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .info-block p, .info-block li {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 6px;
+  }
+  .info-block ul { padding-left: 16px; }
+  .info-block li { margin-bottom: 4px; }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  /* Today highlight in overview */
+  .week-row.today-row { background: var(--accent-dim2); }
+  .week-row.today-row .week-row-day { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- TODAY PAGE -->
+<div class="page active" id="page-today">
+  <div class="header">
+    <div class="header-label">Today's Session</div>
+    <h1 id="today-heading">Loading...</h1>
+    <div class="header-sub" id="today-date"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="stat-week">W1</div><div class="stat-lbl">Week</div></div>
+    <div class="stat"><div class="stat-val" id="stat-done">0/0</div><div class="stat-lbl">Done</div></div>
+    <div class="stat"><div class="stat-val">~14%</div><div class="stat-lbl">Est. BF</div></div>
+  </div>
+  <div id="today-content" style="padding: 0 20px;"></div>
+</div>
+
+<!-- SCHEDULE PAGE -->
+<div class="page" id="page-schedule">
+  <div class="header">
+    <div class="header-label">Weekly Schedule</div>
+    <h1>7-Day Plan</h1>
+    <div class="header-sub">Tap any day to view</div>
+  </div>
+  <div class="day-nav" id="day-nav"></div>
+  <div id="day-views"></div>
+</div>
+
+<!-- OVERVIEW PAGE -->
+<div class="page" id="page-overview">
+  <div class="overview-page">
+    <div class="page-title">This Week</div>
+    <div class="week-card" id="week-overview"></div>
+  </div>
+</div>
+
+<!-- INFO PAGE -->
+<div class="page" id="page-info">
+  <div class="info-page">
+    <div class="page-title">Program Notes</div>
+
+    <div class="info-block">
+      <h3>Your stats</h3>
+      <p>164 lbs · 5'10" · ~14–15% body fat · Wide clavicles, wide iliac crest</p>
+      <p>Goal: mild cut to reveal abs (~11–12% BF), then build. Target loss: 0.5–0.75 lb/week.</p>
+    </div>
+
+    <div class="info-block">
+      <h3>Why U/L/U/L/U</h3>
+      <p>Upper muscles get hit 3× per week — research (Schoenfeld et al.) shows higher frequency drives more hypertrophy. Lower days are separated by upper days so legs always recover. Rest days placed mid-week so you're never compounding fatigue.</p>
+    </div>
+
+    <div class="info-block">
+      <h3>The 2 sets to failure rule</h3>
+      <p>Every set should end at 0–1 RIR (reps in reserve). This matches the hypertrophy stimulus of 4 moderate sets. If you hit the top of the rep range both sets → add weight next session. Progressive overload is #1.</p>
+    </div>
+
+    <div class="info-block">
+      <h3>Aesthetic frame strategy</h3>
+      <ul>
+        <li>Wide clavicles are your superpower — lean into them</li>
+        <li>Lat width visually narrows the waist from every angle</li>
+        <li>Side delts are the #1 shoulder width driver — 3 sets every upper day</li>
+        <li>No heavy weighted oblique work — keeps waist tight</li>
+        <li>Hip width is structural (iliac crest) — unfixable, but fixable optically</li>
+        <li>Practice stomach vacuums daily — tightens transverse abdominis</li>
+      </ul>
+    </div>
+
+    <div class="info-block">
+      <h3>Rest / sleep</h3>
+      <ul>
+        <li>7–9 hours — GH peaks during deep sleep</li>
+        <li>Active rest days still burn calories without blunting recovery</li>
+        <li>Swimming is ideal — full body, zero joint load, good for lats</li>
+      </ul>
+    </div>
+
+    <div class="info-block">
+      <h3>Nutrition targets (cut phase)</h3>
+      <ul>
+        <li>Calories: ~2,050–2,200/day (250–400 deficit)</li>
+        <li>Protein: 165–180g/day (~1–1.1g per lb BW)</li>
+        <li>Timeline: 8–12 weeks to visible abs</li>
+        <li>Carbs around training, fats at other meals</li>
+      </ul>
+    </div>
+
+    <div class="info-block">
+      <h3>Rep ranges decoded</h3>
+      <ul>
+        <li><b style="color:#ffc842">Strength zone</b> (6–10 reps): heavy compounds, mechanical tension</li>
+        <li><b style="color:#42a5f5">Hypertrophy zone</b> (10–15 reps): sweet spot for growth</li>
+        <li><b style="color:#c8f542">Pump zone</b> (15–20 reps): metabolic stress, isolation finishers</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-today" onclick="showPage('today')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    <span class="nav-label">Today</span>
+  </button>
+  <button class="nav-btn" id="nav-schedule" onclick="showPage('schedule')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-label">Schedule</span>
+  </button>
+  <button class="nav-btn" id="nav-overview" onclick="showPage('overview')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span class="nav-label">Week</span>
+  </button>
+  <button class="nav-btn" id="nav-info" onclick="showPage('info')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span class="nav-label">Info</span>
+  </button>
+</div>
+
+<script>
+const DAYS = [
+  {
+    key: 'mon', name: 'Mon', type: 'upper', label: 'Upper A',
+    title: 'Push + Lat Width',
+    focus: 'Chest · Front/Side Delts · Triceps · Lats',
+    tip: 'Upper chest + lat width = V-taper foundation. Your wide clavicles are an asset here — capitalize.',
+    sections: [
+      { label: 'Compounds — strength zone', exercises: [
+        { name: 'Incline Barbell / DB Press', note: '45° incline — upper chest emphasis. Pairs with wide clavicles perfectly.', sets: '2 × 6–8', zone: 'str' },
+        { name: 'Weighted Pull-up / Lat Pulldown', note: 'Wide overhand grip. Initiate with lats, not arms. #1 lat width exercise.', sets: '2 × 6–10', zone: 'str' },
+        { name: 'Dips (bodyweight or weighted)', note: 'Slight forward lean = more chest. Stay upright = more tricep. Both are good.', sets: '2 × 8–12', zone: 'str' },
+      ]},
+      { label: 'Isolation — hypertrophy zone', exercises: [
+        { name: 'DB Front Raise', note: 'Front delt gap-filler. Controlled, no swinging. Alternate arms or both together.', sets: '2 × 12–15', zone: 'hyp' },
+        { name: 'Cable Lateral Raise', note: 'Single arm, cable keeps tension at top. Crucial for visual shoulder width.', sets: '2 × 15–20', zone: 'pump' },
+        { name: 'Cable Fly (low to high)', note: 'Upper chest stretch — full ROM. Where barbells can\'t reach.', sets: '2 × 12–15', zone: 'hyp' },
+        { name: 'Straight-Arm Lat Pulldown', note: 'Pure lat isolation, no bicep. Best lat mind-muscle builder.', sets: '2 × 12–15', zone: 'hyp' },
+        { name: 'Cable Tricep Pushdown (rope)', note: 'Rope allows supination at bottom = better long-head stretch.', sets: '2 × 12–15', zone: 'pump' },
+      ]},
+      { label: 'Muscle-up training — finisher', exercises: [
+        { name: 'Pull-ups to Failure', note: 'One all-out set after everything — pre-fatigue builds the grinding strength needed at the top of a muscle-up. Track your reps every session.', sets: '1 × max', zone: 'str' },
+      ]},
+    ],
+    nutrition: true,
+  },
+  {
+    key: 'tue', name: 'Tue', type: 'rest', label: 'Active Rest',
+    title: 'Pool Day',
+    focus: 'Swimming · Mobility · Recovery',
+    tip: 'Swimming is the ideal active recovery — zero joint load, full-body, great for lats and posture. Keep effort easy: this accelerates recovery, not fitness.',
+    restActivities: [
+      {
+        icon: '🏊', title: 'Swimming Session', sub: '30–45 min, low intensity',
+        details: '<b>Warm-up:</b> 4 laps easy freestyle\n<b>Main:</b> 10–12 laps alternating freestyle + backstroke. Backstroke especially — opens chest, activates rear delts, reinforces the wide-back posture you\'re building.\n<b>Cool-down:</b> 2 laps breaststroke, easy\n<b>Effort:</b> conversational pace only. If you\'re breathing hard, slow down.'
+      },
+      {
+        icon: '🧘', title: 'Mobility Routine', sub: '10–15 min post-swim',
+        details: '<b>Hip flexor stretch:</b> 60 sec each side (counteracts leg press tightness)\n<b>Doorway chest stretch:</b> 60 sec (opens pec minor, improves posture)\n<b>Lat hang:</b> 3 × 20 sec on a bar (decompresses spine, stretches lats)\n<b>Stomach vacuum:</b> 3 × 15 sec hold — tightens transverse abdominis daily'
+      },
+      {
+        icon: '😴', title: 'Recovery Focus', sub: 'Sleep + nutrition',
+        details: '<b>Sleep target:</b> 7–9 hours — GH peaks during slow-wave sleep\n<b>Protein still matters:</b> hit 165–180g even on rest days\n<b>Hydration:</b> aim for pale yellow urine all day'
+      }
+    ]
+  },
+  {
+    key: 'wed', name: 'Wed', type: 'upper', label: 'Upper B',
+    title: 'Pull + Rear Delts',
+    focus: 'Lats · Rear Delts · Biceps · Upper Back · Core',
+    tip: 'Rear delts create 3D shoulder roundness. A wide back visually narrows the waist — this session directly addresses your iliac crest situation.',
+    sections: [
+      { label: 'Compounds — strength zone', exercises: [
+        { name: 'Seated Cable Row (wide grip)', note: 'Elbow flare for upper back today. Full retraction at end.', sets: '2 × 8–10', zone: 'str' },
+        { name: 'Chest-Supported DB Row', note: 'Removes lower back from the equation — pure upper back overload.', sets: '2 × 8–12', zone: 'str' },
+      ]},
+      { label: 'Trap + upper back', exercises: [
+        { name: 'Barbell or DB Shrugs', note: 'Full elevation, hold 1 sec at top. Traps are hugely aesthetic and currently undertrained in most programs.', sets: '2 × 12–15', zone: 'hyp' },
+      ]},
+      { label: 'Isolation — hypertrophy zone', exercises: [
+        { name: 'Face Pull (rope, eye level)', note: 'Rear delt + external rotation. Best shoulder health exercise.', sets: '2 × 15–20', zone: 'pump' },
+        { name: 'Rear Delt Fly (cable or DB)', note: 'Bent 90°, slight elbow bend. Squeeze at top.', sets: '2 × 15–20', zone: 'hyp' },
+        { name: 'Incline DB Curl', note: 'Arms behind body = more long-head stretch = bigger bicep peak.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'Hammer Curl', note: 'Brachialis + brachioradialis — adds arm thickness beyond just peak.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'JM Press', note: 'Hybrid skullcrusher/close-grip press. Bar comes to throat, elbows stay in. Destroys the tricep long head — best bang-for-buck tricep exercise.', sets: '2 × 10–12', zone: 'str' },
+      ]},
+      { label: 'Core — waist tightening only', exercises: [
+        { name: 'Hanging Leg Raise / Ab Wheel', note: 'Sagittal plane only. No heavy oblique work — keeps waist tight.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'Cable Crunch', note: 'Loads rectus abdominis under stretch — far better than sit-ups.', sets: '2 × 12–15', zone: 'hyp' },
+      ]},
+      { label: 'Muscle-up training — finisher', exercises: [
+        { name: 'Pull-ups to Failure', note: 'All-out after everything — this pre-fatigued set is where muscle-up strength is built. Log your reps every session.', sets: '1 × max', zone: 'str' },
+      ]},
+    ],
+    nutrition: true,
+  },
+  {
+    key: 'thu', name: 'Thu', type: 'lower', label: 'Lower A',
+    title: 'Legs',
+    focus: 'Hamstrings · Quads · Glutes · Adductors · Calves',
+    tip: 'Hip-hinge first while CNS is fresh. Posterior chain needs it most for injury prevention and athletic aesthetics.',
+    sections: [
+      { label: 'Hip hinge — posterior chain', exercises: [
+        { name: 'Hamstring Curl (lying or seated)', note: 'Seated has greater stretch = more hypertrophy per research.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'Cable RDL', note: 'Soft knee, hinge at hip. Feel the full hamstring stretch.', sets: '2 × 10–12', zone: 'hyp' },
+      ]},
+      { label: 'Quad dominant', exercises: [
+        { name: 'Leg Extension', note: 'Toes slightly inward for inner quad. Slow eccentric.', sets: '2 × 12–15', zone: 'hyp' },
+        { name: 'Leg Press', note: 'Wide stance for glute involvement. Don\'t lock knees at top.', sets: '2 × 10–15', zone: 'str' },
+      ]},
+      { label: 'Adductors + calves', exercises: [
+        { name: 'Hip Abduction Machine', note: 'Glute med development — outer hip curve.', sets: '1 × 15–20', zone: 'pump' },
+        { name: 'Hip Adduction Machine', note: 'Inner thigh stability and visual leg fullness.', sets: '1 × 15–20', zone: 'pump' },
+        { name: 'Calf Raises', note: 'Full ROM — pause 1 sec at bottom. 3 sets needed for calf stimulus.', sets: '3 × 12–20', zone: 'hyp' },
+      ]},
+    ],
+    nutrition: true,
+  },
+  {
+    key: 'fri', name: 'Fri', type: 'rest', label: 'Active Rest',
+    title: 'Sport Day',
+    focus: 'Basketball · Tennis · Active Recovery',
+    tip: 'Sport on this rest day keeps you moving and actually improves athleticism, coordination and mental freshness. Keep it fun — don\'t go all-out competitively.',
+    restActivities: [
+      {
+        icon: '🏀', title: 'Basketball', sub: '45–60 min recommended',
+        details: '<b>Why it works:</b> Explosive lateral movement builds hip stability (helps with your iliac crest situation), and jumping develops calf + glute endurance without loading your quads the day before an upper session.\n<b>Approach:</b> Play freely — don\'t pace yourself. This is active rest, not conditioning. Stop before you\'re exhausted.'
+      },
+      {
+        icon: '🎾', title: 'Tennis (alternative)', sub: '45–60 min',
+        details: '<b>Why it works:</b> Rotational core work, footwork, and shoulder mobility — all complement your training. Forehand drives actually recruit the same lat-to-hip chain you train on pull days.\n<b>Approach:</b> Rallying is fine. Hard match play is also fine — just don\'t grind through pain.'
+      },
+      {
+        icon: '🧘', title: 'Post-sport stretch', sub: '10 min minimum',
+        details: '<b>Hip flexors:</b> 60 sec each side\n<b>Quad stretch:</b> 45 sec each side\n<b>Hamstring:</b> seated reach, 60 sec each side\n<b>Shoulder cross-body:</b> 30 sec each side\n<b>Stomach vacuum:</b> 3 × 15 sec — do this daily'
+      }
+    ]
+  },
+  {
+    key: 'sat', name: 'Sat', type: 'upper', label: 'Upper C',
+    title: 'Shoulder Width + Arms',
+    focus: 'Side Delts · Chest · Back · Arms · Abs',
+    tip: 'Third upper session = the detail work. Side delts are the widest point of your silhouette. This is your Nightwing session.',
+    sections: [
+      { label: 'Shoulder width — priority', exercises: [
+        { name: 'Seated DB / Machine Lateral Raise', note: 'Lean slightly forward, raise to ear. #1 shoulder width exercise.', sets: '2 × 15–20', zone: 'pump' },
+        { name: 'Cable Lateral Raise (cross-body)', note: 'Different angle from Monday — hits a unique portion of the delt.', sets: '2 × 15–20', zone: 'pump' },
+        { name: 'Machine Shoulder Press', note: 'Neutral or angled grip to reduce impingement.', sets: '2 × 8–12', zone: 'str' },
+      ]},
+      { label: 'Chest + back maintenance', exercises: [
+        { name: 'Flat DB Press / Cable Fly', note: 'Mid chest — complements Monday\'s upper chest.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'Single-Arm Lat Pulldown / Cable Row', note: 'Unilateral corrects imbalances, better mind-muscle.', sets: '2 × 10–15', zone: 'hyp' },
+      ]},
+      { label: 'Arms finisher', exercises: [
+        { name: 'Cable Curl', note: 'Arms pinned, curl to chin. Constant tension throughout.', sets: '2 × 12–15', zone: 'pump' },
+        { name: 'JM Press', note: 'Bar to throat, elbows in — long-head tricep emphasis. Heavier than overhead extension. Pair back-to-back with curls as a superset.', sets: '2 × 10–12', zone: 'str' },
+        { name: 'Overhead Cable Tricep Extension', note: 'Long-head stretch finisher — follow immediately after JM press to fully exhaust the tricep.', sets: '2 × 12–15', zone: 'pump' },
+      ]},
+      { label: 'Core finisher', exercises: [
+        { name: 'Decline / Reverse Crunch', note: 'Lower ab focus — directly targets where you hold fat.', sets: '2 × 12–20', zone: 'hyp' },
+      ]},
+      { label: 'Muscle-up training — finisher', exercises: [
+        { name: 'Pull-ups to Failure', note: 'Every upper day ends here. Arms are pre-exhausted — this is exactly the stimulus that builds muscle-up capacity. Note your reps.', sets: '1 × max', zone: 'str' },
+      ]},
+    ],
+    nutrition: true,
+  },
+  {
+    key: 'sun', name: 'Sun', type: 'lower', label: 'Lower B',
+    title: 'Legs (Beat Thursday)',
+    focus: 'Hamstrings · Quads · Glutes · Adductors · Calves',
+    tip: 'Aim to beat Thursday\'s performance — more reps or slightly more weight. Progressive overload is the #1 driver of muscle growth.',
+    sections: [
+      { label: 'Hip hinge — posterior chain', exercises: [
+        { name: 'Hamstring Curl', note: 'Try to beat Thursday\'s reps or weight.', sets: '2 × 10–15', zone: 'hyp' },
+        { name: 'Cable RDL', note: 'Track your weights — this should go up weekly.', sets: '2 × 10–12', zone: 'hyp' },
+      ]},
+      { label: 'Quad dominant', exercises: [
+        { name: 'Leg Extension', note: 'Slow 3-sec eccentric for extra time under tension.', sets: '2 × 12–15', zone: 'hyp' },
+        { name: 'Leg Press', note: 'Can vary foot position today vs Thursday for stimulus variety.', sets: '2 × 10–15', zone: 'str' },
+      ]},
+      { label: 'Adductors + calves', exercises: [
+        { name: 'Hip Abduction Machine', note: '', sets: '1 × 15–20', zone: 'pump' },
+        { name: 'Hip Adduction Machine', note: '', sets: '1 × 15–20', zone: 'pump' },
+        { name: 'Calf Raises', note: 'Full ROM, pause at bottom stretch.', sets: '3 × 12–20', zone: 'hyp' },
+      ]},
+    ],
+    nutrition: true,
+  },
+];
+
+// Map day of week (0=Sun) to DAYS index
+const DOW_MAP = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
+
+function getToday() {
+  return DOW_MAP[new Date().getDay()];
+}
+
+function zoneChip(zone) {
+  if (zone === 'str') return '<span class="chip chip-str">Strength</span>';
+  if (zone === 'hyp') return '<span class="chip chip-hyp">Hypertrophy</span>';
+  return '<span class="chip chip-pump">Pump</span>';
+}
+
+function renderExercises(day, containerId) {
+  const done = JSON.parse(localStorage.getItem('done_' + day.key) || '{}');
+  let html = '';
+  let totalEx = 0;
+  let doneCount = 0;
+
+  if (day.sections) {
+    day.sections.forEach((sec, si) => {
+      html += `<div class="section-label">${sec.label}</div>`;
+      sec.exercises.forEach((ex, ei) => {
+        const id = `${si}_${ei}`;
+        const isDone = done[id];
+        totalEx++;
+        if (isDone) doneCount++;
+        html += `
+          <div class="exercise-card ${isDone ? 'done' : ''}" onclick="toggleEx('${day.key}','${id}','${containerId}')">
+            <div class="ex-check"></div>
+            <div class="ex-body">
+              <div class="ex-name">${ex.name}</div>
+              ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+              <div class="ex-chips">
+                <span class="chip chip-sets">${ex.sets}</span>
+                ${zoneChip(ex.zone)}
+              </div>
+            </div>
+          </div>`;
+      });
+    });
+  }
+
+  if (day.restActivities) {
+    day.restActivities.forEach(act => {
+      html += `<div class="activity-card">
+        <div class="activity-header">
+          <div class="activity-icon">${act.icon}</div>
+          <div><div class="activity-title">${act.title}</div><div class="activity-sub">${act.sub}</div></div>
+        </div>
+        <div class="activity-details">${act.details.replace(/\n/g,'<br>')}</div>
+      </div>`;
+    });
+  }
+
+  if (day.nutrition) {
+    html += `<div class="nutrition-block">
+      <div class="nutrition-title">Nutrition today</div>
+      <div class="nutrition-row"><span class="nutrition-key">Calories</span><span class="nutrition-val">2,050–2,200</span></div>
+      <div class="nutrition-row"><span class="nutrition-key">Protein</span><span class="nutrition-val">165–180g</span></div>
+      <div class="nutrition-row"><span class="nutrition-key">Carbs</span><span class="nutrition-val">Around training</span></div>
+      <div class="nutrition-row"><span class="nutrition-key">Rate of loss</span><span class="nutrition-val">0.5–0.75 lb/wk</span></div>
+    </div>`;
+  }
+
+  if (day.sections) {
+    html += `<button class="reset-btn" onclick="resetDay('${day.key}','${containerId}')">Reset completed exercises</button>`;
+  }
+
+  return { html, totalEx, doneCount };
+}
+
+function toggleEx(dayKey, exId, containerId) {
+  const done = JSON.parse(localStorage.getItem('done_' + dayKey) || '{}');
+  done[exId] = !done[exId];
+  localStorage.setItem('done_' + dayKey, JSON.stringify(done));
+  refreshContainer(dayKey, containerId);
+}
+
+function resetDay(dayKey, containerId) {
+  localStorage.removeItem('done_' + dayKey);
+  refreshContainer(dayKey, containerId);
+}
+
+function refreshContainer(dayKey, containerId) {
+  const day = DAYS.find(d => d.key === dayKey);
+  const container = document.getElementById(containerId);
+  if (!container || !day) return;
+  const { html, totalEx, doneCount } = renderExercises(day, containerId);
+  const inner = container.querySelector('.ex-content');
+  if (inner) inner.innerHTML = html;
+
+  if (containerId === 'today-content') {
+    document.getElementById('stat-done').textContent = `${doneCount}/${totalEx}`;
+  }
+}
+
+function buildDayHTML(day, containerId) {
+  const heroClass = day.type === 'upper' ? 'upper' : day.type === 'lower' ? 'lower' : 'rest';
+  const { html, totalEx, doneCount } = renderExercises(day, containerId);
+  return `
+    <div class="day-hero ${heroClass}">
+      <div class="day-hero-badge">${day.label}</div>
+      <div class="day-hero-title">${day.title}</div>
+      <div class="day-hero-focus">${day.focus.split(' · ').map(f => `<span>${f}</span>`).join(' · ')}</div>
+    </div>
+    <div class="aesthetic-tip"><strong>Focus:</strong> ${day.tip}</div>
+    <div class="ex-content">${html}</div>
+  `;
+}
+
+// Build today
+function buildToday() {
+  const idx = getToday();
+  const day = DAYS[idx];
+  document.getElementById('today-heading').textContent = day.title;
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('today-date').textContent = `${day.label} · ${dateStr}`;
+
+  const container = document.getElementById('today-content');
+  container.innerHTML = buildDayHTML(day, 'today-content');
+
+  const done = JSON.parse(localStorage.getItem('done_' + day.key) || '{}');
+  let totalEx = 0, doneCount = 0;
+  if (day.sections) {
+    day.sections.forEach((s,si) => s.exercises.forEach((_,ei) => {
+      totalEx++;
+      if (done[`${si}_${ei}`]) doneCount++;
+    }));
+  }
+  document.getElementById('stat-done').textContent = `${doneCount}/${totalEx}`;
+
+  // Week number
+  const start = new Date(2025, 5, 2); // program start
+  const now = new Date();
+  const week = Math.max(1, Math.ceil((now - start) / (7 * 86400000)));
+  document.getElementById('stat-week').textContent = `W${week}`;
+}
+
+// Build schedule
+function buildSchedule() {
+  const nav = document.getElementById('day-nav');
+  const views = document.getElementById('day-views');
+  const todayIdx = getToday();
+  nav.innerHTML = '';
+  views.innerHTML = '';
+
+  DAYS.forEach((day, i) => {
+    const typeClass = day.type === 'upper' ? 'upper' : day.type === 'lower' ? 'lower' : 'rest-day';
+    const isToday = i === todayIdx;
+    nav.innerHTML += `
+      <button class="day-btn ${typeClass} ${i === 0 ? 'active' : ''} ${isToday ? 'today' : ''}" 
+        id="daybtn-${i}" onclick="switchDay(${i})">
+        <span class="day-btn-name">${day.name}</span>
+        <div class="day-btn-dot"></div>
+      </button>`;
+
+    const viewId = `schview-${i}`;
+    const div = document.createElement('div');
+    div.className = `day-view ${i === 0 ? 'active' : ''}`;
+    div.id = viewId;
+    div.innerHTML = buildDayHTML(day, viewId);
+    views.appendChild(div);
+  });
+}
+
+function switchDay(idx) {
+  document.querySelectorAll('.day-btn').forEach((b,i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.day-view').forEach((v,i) => v.classList.toggle('active', i === idx));
+}
+
+// Build overview
+function buildOverview() {
+  const todayIdx = getToday();
+  const names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = '';
+  DAYS.forEach((day, i) => {
+    const color = day.type === 'upper' ? '#c8f542' : day.type === 'lower' ? '#42a5f5' : '#ff8c42';
+    const isToday = i === todayIdx;
+    html += `<div class="week-row ${isToday ? 'today-row' : ''}" onclick="goToDay(${i})">
+      <span class="week-row-day">${names[i]}</span>
+      <div class="week-row-dot" style="background:${color}"></div>
+      <span class="week-row-name">${day.title}</span>
+      <span class="week-row-type">${day.label}</span>
+    </div>`;
+  });
+  document.getElementById('week-overview').innerHTML = html;
+}
+
+function goToDay(idx) {
+  showPage('schedule');
+  setTimeout(() => switchDay(idx), 50);
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+buildToday();
+buildSchedule();
+buildOverview();
+</script>
+</body>
+</html>
